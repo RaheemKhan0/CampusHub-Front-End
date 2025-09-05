@@ -2,8 +2,7 @@
 # Base image (pick ONE of these)
 # ------------------------------------------------------------
 # Option A: Smallest image; works for most apps (add libc6-compat for Next/sharp)
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+FROM node:20-bullseye-slim AS base
 
 # Option B (uncomment to use): slightly larger, best compatibility for native deps
 # FROM node:20-slim AS base
