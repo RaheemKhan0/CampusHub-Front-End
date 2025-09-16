@@ -7,7 +7,7 @@ FROM node:20-bullseye-slim AS base
 # Option B (uncomment to use): slightly larger, best compatibility for native deps
 # FROM node:20-slim AS base
 
-WORKDIR /app
+WORKDIR /app 
 ENV NODE_ENV=production
 # Next.js needs this when running in Docker
 ENV HOSTNAME=0.0.0.0
