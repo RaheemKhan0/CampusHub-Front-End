@@ -24,7 +24,7 @@ RUN npm ci
 COPY . .
 # Expose Next dev server
 EXPOSE 3000
-# Run dev server (HMR)
+
 CMD ["npm", "run", "dev"]
 
 # ------------------------------------------------------------
