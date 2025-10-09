@@ -178,6 +178,64 @@ export interface components {
              *     BA user IDs (strings), not ObjectIds. */
             memberIds?: string[];
         };
+        ChannelViewDto: {
+            /**
+             * @description Channel id
+             * @example 6710a4f2f23a5a2c5f6f8a1b
+             */
+            id: string;
+            /**
+             * @description Server id this channel belongs to
+             * @example 670ffe9bd4e2f1d3c9a4b123
+             */
+            serverId: string;
+            /**
+             * @description Channel name (unique within server, unless you allow dupes)
+             * @example general
+             */
+            name: string;
+            /**
+             * @description Channel type
+             * @example text
+             * @enum {string}
+             */
+            type: "text" | "qa";
+            /**
+             * @description Ordering position within the server
+             * @example 0
+             */
+            position: number;
+            /**
+             * @description Channel privacy
+             * @example public
+             * @enum {string}
+             */
+            privacy: "public" | "hidden";
+            /**
+             * Format: date-time
+             * @description Creation timestamp (ISO 8601)
+             * @example 2025-09-27T15:21:45.123Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp (ISO 8601)
+             * @example 2025-10-01T10:05:12.987Z
+             */
+            updatedAt: string;
+        };
+        ChannelListResponseDto: {
+            /** @description the public channels for the server */
+            publicChannels: unknown[][];
+            /** @description private channels the user has joined */
+            privateChannels?: components["schemas"]["ChannelViewDto"][];
+            /** @example 42 */
+            total: number;
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            pageSize: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -316,11 +374,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description returns a channel list visible to the user */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChannelListResponseDto"];
+                };
             };
         };
     };
@@ -360,6 +421,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description returns when adding a member in ther channel if the channel is hidden */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -380,6 +442,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description this handler deletes a member from the channel */
             200: {
                 headers: {
                     [name: string]: unknown;

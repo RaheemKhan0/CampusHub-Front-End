@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useInfiniteServers } from "@/hooks/useInfiniteServers";
-import { useServer } from "@/hooks/useServer";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteServers } from "@/hooks/servers/useInfiniteServers";
+import { useServer } from "@/hooks/servers/useServer";
 import type { components } from "@/types/openapi";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,11 +20,27 @@ type ServerView = components["schemas"]["ServerViewDto"];
 
 type ServerAccordionProps = {
   className?: string;
+  activeServerId?: string | null;
+  onServerSelect?: (server: ServerView) => void;
 };
 
-export function ServerAccordion({ className }: ServerAccordionProps) {
+export function ServerAccordion({
+  className,
+  activeServerId: controlledActiveId,
+  onServerSelect,
+}: ServerAccordionProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
-  const [activeServerId, setActiveServerId] = useState<string | null>(null);
+  const [internalActiveId, setInternalActiveId] = useState<string | null>(
+    controlledActiveId ?? null,
+  );
+
+  useEffect(() => {
+    if (controlledActiveId !== undefined) {
+      setInternalActiveId(controlledActiveId);
+    }
+  }, [controlledActiveId]);
+
+  const activeServerId = controlledActiveId ?? internalActiveId;
 
   const {
     data,
@@ -67,6 +83,14 @@ export function ServerAccordion({ className }: ServerAccordionProps) {
     el.addEventListener("scroll", handleScroll);
     return () => el.removeEventListener("scroll", handleScroll);
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const handleServerClick = useCallback(
+    (server: ServerView) => {
+      setInternalActiveId(server.id);
+      onServerSelect?.(server);
+    },
+    [onServerSelect],
+  );
 
   if (isLoading) {
     return (
@@ -143,7 +167,7 @@ export function ServerAccordion({ className }: ServerAccordionProps) {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => setActiveServerId(server.id)}
+                      onClick={() => handleServerClick(server)}
                       className={cn(
                         "group flex h-14 w-full flex-col justify-center rounded-md border border-border/40 bg-background/80 px-3 text-left transition-colors",
                         "hover:border-primary/60 hover:bg-background",
@@ -172,9 +196,6 @@ export function ServerAccordion({ className }: ServerAccordionProps) {
         </div>
       </TooltipProvider>
       <Separator />
-      <div className="px-4 py-3 text-xs text-muted-foreground/90">
-        {renderActiveDescription()}
-      </div>
     </div>
   );
 }
