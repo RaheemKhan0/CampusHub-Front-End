@@ -6,10 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "api:pull": "curl -fsSL http://localhost:4000/api-json -o src/api/openapi.json",
+    "api:gen": "openapi-typescript src/api/openapi.json -o src/api/types/openapi.d.ts",
+    "api:sync": "npm api:pull && npm api:gen"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
+    "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -19,12 +23,15 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-query": "^5.90.2",
+    "axios": "^1.12.2",
     "better-auth": "^1.3.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.542.0",
     "next": "15.5.2",
     "next-themes": "^0.4.6",
+    "openapi-fetch": "^0.14.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
@@ -35,13 +42,15 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
+    "openapi-typescript": "^7.9.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.8",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }

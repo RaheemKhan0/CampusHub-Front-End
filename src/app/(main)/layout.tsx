@@ -4,6 +4,9 @@ import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
+import Providers from "@/components/utilities/providers";
+import { ThemeProvider } from "@/components/utilities/themeprovider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,14 +32,23 @@ export default function MainLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SidebarProvider>
-          <AppSidebar />
-          <main>
-            <Toaster />
-            <SidebarTrigger />
-            {children}
-          </main>{" "}
-        </SidebarProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SidebarProvider>
+            <Providers>
+              <AppSidebar />
+              <main className="flex-1">
+                <SidebarTrigger className="lg:hidden" />
+                {children}
+              </main>
+              <Toaster />
+            </Providers>
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
