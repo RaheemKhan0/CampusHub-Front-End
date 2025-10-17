@@ -1,7 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { LucideArrowLeft, X } from "lucide-react";
+import { LucideArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,7 +8,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useChannels } from "@/hooks/channels/useChannels";
 import type { components } from "@/types/openapi";
-
+import { useParams, useRouter } from "next/navigation";
+import {
+  Accordion,
+  AccordionTrigger,
+  AccordionContent,
+  AccordionItem,
+} from "../ui/accordion";
 
 type ChannelView = components["schemas"]["ChannelViewDto"];
 
@@ -40,7 +45,7 @@ export function ServerChannelsPanel({
   return (
     <div
       className={cn(
-        "relative flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out",
+        "flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out sticky left-0 align-middle",
         open ? "w-[300px] max-w-[300px]" : "w-0",
       )}
     >
@@ -56,7 +61,9 @@ export function ServerChannelsPanel({
       >
         <header className="flex items-center justify-between border-b border-border/40 px-4 py-3">
           <div>
-            <p className="text-xs uppercase text-muted-foreground/70">Server Channels</p>
+            <p className="text-xs uppercase text-muted-foreground/70">
+              Server Channels
+            </p>
             <h2 className="text-base font-semibold text-foreground mt-2">
               {serverName ?? "Select a server"}
             </h2>
@@ -81,18 +88,25 @@ export function ServerChannelsPanel({
           ) : publicChannels.length === 0 && privateChannels.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="space-y-6">
+            <Accordion
+              type="multiple"
+              defaultValue={[
+                ...(publicChannels.length ? ["public"] : []),
+                ...(privateChannels.length ? ["private"] : []),
+              ]}
+              className="space-y-3"
+            >
               <ChannelSection
+                value="public"
                 title="Public Channels"
                 channels={publicChannels}
               />
-              {privateChannels.length > 0 && (
-                <ChannelSection
-                  title="Private Channels"
-                  channels={privateChannels}
-                />
-              )}
-            </div>
+              <ChannelSection
+                value="private"
+                title="Private Channels"
+                channels={privateChannels}
+              />
+            </Accordion>
           )}
         </div>
       </div>
@@ -101,34 +115,63 @@ export function ServerChannelsPanel({
 }
 
 type ChannelSectionProps = {
+  value: string;
   title: string;
   channels: ChannelView[];
 };
 
-function ChannelSection({ title, channels }: ChannelSectionProps) {
+function ChannelSection({ value, title, channels }: ChannelSectionProps) {
+  const router = useRouter();
+  const params = useParams<{ serverId: string; channelId?: string }>();
+  const activeChannelId = Array.isArray(params?.channelId)
+    ? params?.channelId[0]
+    : params?.channelId;
+
   if (channels.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </p>
-      <ul className="space-y-1">
-        {channels.map((channel) => (
-          <li
-            key={channel.id}
-            className="rounded-md border border-border/40 bg-background/80 px-3 py-2 text-sm text-foreground"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-medium">{channel.name}</span>
-              <span className="text-xs uppercase text-muted-foreground">
-                {channel.type}
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <AccordionItem
+      value={value}
+      className="overflow-hidden rounded-lg border border-border/40 bg-background/60"
+    >
+      <AccordionTrigger className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <span>{title}</span>
+        <span className="ml-auto text-[0.7rem] font-normal text-muted-foreground/80">
+          {channels.length}
+        </span>
+      </AccordionTrigger>
+      <AccordionContent>
+        <ul className="space-y-1 px-2 py-2">
+          {channels.map((channel) => {
+            const isActive = activeChannelId === channel.id;
+
+            return (
+              <li key={channel.id}>
+                <button
+                  type="button"
+                  aria-current={isActive ? "true" : undefined}
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/server/${channel.serverId}/channel/${channel.id}`,
+                    )
+                  }
+                  className={cn(
+                    "group flex w-full flex-col gap-1 rounded-md border border-transparent px-3 py-2 text-left transition-colors",
+                    "bg-background/70 hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                    isActive && "border-primary/70 bg-primary/10 text-primary",
+                  )}
+                >
+                  <span className="truncate font-medium">{channel.name}</span>
+                  <span className="text-xs uppercase text-muted-foreground group-hover:text-muted-foreground/80">
+                    {channel.type}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
