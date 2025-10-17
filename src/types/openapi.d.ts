@@ -78,6 +78,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/servers/{serverId}/channels/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelsController_find"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/servers/{serverId}/channels/{channelId}/members": {
         parameters: {
             query?: never;
@@ -105,6 +121,24 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["ChannelsController_removeMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/servers/{serverId}/channels/{channelId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List messages in the channel */
+        get: operations["MessagesController_listMessages"];
+        put?: never;
+        /** Create a new message in the channel */
+        post: operations["MessagesController_create"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -235,6 +269,121 @@ export interface components {
             page: number;
             /** @example 20 */
             pageSize: number;
+        };
+        CreateAttachmentDto: {
+            /**
+             * @description Public URL pointing to stored attachment
+             * @example https://cdn.example.com/uploads/file.pdf
+             */
+            url: string;
+            /**
+             * @description Original filename if provided
+             * @example lecture-notes.pdf
+             */
+            name?: string;
+            /**
+             * @description Mime type of the attachment
+             * @example application/pdf
+             */
+            mime?: string;
+            /**
+             * @description File size in bytes
+             * @example 1048576
+             */
+            size?: number;
+        };
+        CreateMentionDto: {
+            /**
+             * @description Identifier of the mentioned user (BetterAuth user id)
+             * @example usr_01hxt8zshm8yc6a5n8s6k1qj3r
+             */
+            userId: string;
+        };
+        CreateMessageDto: {
+            /**
+             * @description Target channel identifier
+             * @example 6710a4f2f23a5a2c5f6f8a1b
+             */
+            channelId: string;
+            /**
+             * @description Message Markdown/text content
+             * @example Remember to review the lecture slides before Friday's quiz.
+             */
+            content: string;
+            /**
+             * @description Name of the author
+             * @example Khan
+             */
+            authorName: string;
+            /** @description List of attachments associated with this message */
+            attachments?: components["schemas"]["CreateAttachmentDto"][];
+            /** @description Users mentioned in the message content */
+            mentions?: components["schemas"]["CreateMentionDto"][];
+        };
+        MessageViewDto: {
+            /**
+             * @description Message identifier
+             * @example 6750a4f2f23a5a2c5f6f8a1b
+             */
+            id: string;
+            /**
+             * @description Channel identifier this message belongs to
+             * @example 6710a4f2f23a5a2c5f6f8a1b
+             */
+            channelId: string;
+            /**
+             * @description Author identifier (BetterAuth user id)
+             * @example usr_01hxt8zshm8yc6a5n8s6k1qj3r
+             */
+            authorId: string;
+            /** @description Message Markdown/text content */
+            content: string;
+            /** @description Attachments included with the message */
+            attachments?: unknown[][];
+            /** @description User mentions referenced in the message */
+            mentions?: unknown[][];
+            /**
+             * Format: date-time
+             * @description Timestamp of last edit in ISO 8601 format
+             * @example 2025-10-01T10:05:12.987Z
+             */
+            editedAt?: string;
+            /**
+             * Format: date-time
+             * @description Message creation timestamp (ISO 8601)
+             * @example 2025-09-27T15:21:45.123Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp (ISO 8601)
+             * @example 2025-10-01T11:05:12.987Z
+             */
+            updatedAt: string;
+        };
+        MessageListResponseDto: {
+            /** @description Messages ordered chronologically (oldest to newest unless specified) */
+            items: unknown[][];
+            /**
+             * @description Total messages available for the current filter
+             * @example 125
+             */
+            total: number;
+            /**
+             * @description Current page when using page-based pagination
+             * @example 1
+             */
+            page: number;
+            /**
+             * @description Number of messages per page
+             * @example 50
+             */
+            pageSize: number;
+            /**
+             * @description Whether additional pages are available
+             * @example false
+             */
+            hasMore: boolean;
         };
     };
     responses: never;
@@ -410,6 +559,28 @@ export interface operations {
             };
         };
     };
+    ChannelsController_find: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description returns the desired channel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelViewDto"];
+                };
+            };
+        };
+    };
     ChannelsController_addMembers: {
         parameters: {
             query?: never;
@@ -448,6 +619,57 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    MessagesController_listMessages: {
+        parameters: {
+            query: {
+                page: string;
+                pageSize: string;
+            };
+            header?: never;
+            path: {
+                serverId: string;
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageListResponseDto"];
+                };
+            };
+        };
+    };
+    MessagesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serverId: string;
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageViewDto"];
+                };
             };
         };
     };

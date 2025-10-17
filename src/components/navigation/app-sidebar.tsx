@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { ServerAccordion } from "./accordions/server-accordion";
 import { Separator } from "@/components/ui/separator";
 import { ServerChannelsPanel } from "./server-channels-panel";
+import { useRouter } from "next/navigation";
 
 type ServerView = components["schemas"]["ServerViewDto"];
 type SelectedServer = Pick<ServerView, "id" | "name">;
@@ -33,11 +34,13 @@ export function AppSidebar() {
   const [selectedServer, setSelectedServer] = useState<SelectedServer | null>(
     null,
   );
+  const router = useRouter();
   const [isChannelPanelOpen, setIsChannelPanelOpen] = useState(false);
 
   const handleServerSelect = useCallback((server: ServerView) => {
     setSelectedServer({ id: server.id, name: server.name });
     setIsChannelPanelOpen(true);
+    router.push(`/dashboard/server/${server.id}`);
   }, []);
 
   const handlePanelClose = useCallback(() => {

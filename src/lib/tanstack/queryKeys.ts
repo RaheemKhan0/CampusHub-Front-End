@@ -36,6 +36,20 @@ export const qk = {
     channelId: string,
     params: { cursor?: string | null; limit?: number; q?: string },
   ) => ["server", serverId, "channel", channelId, "messages", params] as const,
+  messagesInfinite: (
+    serverId: string,
+    channelId: string,
+    pageSize?: number,
+  ) =>
+    [
+      "server",
+      serverId,
+      "channel",
+      channelId,
+      "messages",
+      "infinite",
+      pageSize ?? null,
+    ] as const,
 
   // Single message (for optimistic create/update/delete)
   message: (serverId: string, channelId: string, messageId: string) =>
