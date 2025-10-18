@@ -29,7 +29,7 @@ export default function ChannelPage() {
 
   const { data: session } = authClient.useSession();
 
-  const { socket, isConnected, sendMessage } = useMessagesSocket({
+  const { sendMessage } = useMessagesSocket({
     serverId,
     channelId,
     onConnected: (id) => console.log("connected:", id),

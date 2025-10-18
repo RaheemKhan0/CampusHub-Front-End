@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -19,11 +18,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-interface ChatSwitcherProps {
-  name: string;
-  logo: React.ElementType;
-  plan: string;
-}
 
 export function ChatSwitcher({
   Chat,
@@ -69,7 +63,7 @@ export function ChatSwitcher({
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Servers
             </DropdownMenuLabel>
-            {Chat.map((team, index) => (
+            {Chat.map((team) => (
               <DropdownMenuItem
                 key={team.name}
                 onClick={() => setActiveTeam(team)}

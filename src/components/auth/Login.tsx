@@ -28,20 +28,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 // If you have an auth client, import the browser-safe module
 // import { authClient } from "@/lib/betterauth/client";
@@ -69,22 +66,23 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       // Example with your auth client
-      const { data, error } = await authClient.signIn.email({
+      const result = await authClient.signIn.email({
         email: values.email,
         password: values.password,
       });
-      if (error) throw new Error(error.message);
+      if (result.error) throw new Error(result.error.message);
       toast.success("Login Successful!");
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      toast.error(err?.message ?? "Invalid credentials. Try again.");
+      const message = err instanceof Error ? err.message : "Invalid credentials. Try again.";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
   }
 
-  const onInvalid = (errors: any) => {
+  const onInvalid: Parameters<typeof form.handleSubmit>[1] = (errors) => {
     const first = Object.values(errors)[0] as { message?: string };
     toast.error(first?.message ?? "Please fix the errors");
   };
@@ -160,7 +158,7 @@ export default function LoginPage() {
               <FormField
                 control={form.control}
                 name="password"
-                render={({ field, fieldState }) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
@@ -201,7 +199,7 @@ export default function LoginPage() {
               <FormField
                 control={form.control}
                 name="remember"
-                render={({ field, fieldState }) => (
+                render={({ field }) => (
                   <FormItem className="flex flex-row items-center gap-2">
                     <FormControl>
                       <Checkbox
