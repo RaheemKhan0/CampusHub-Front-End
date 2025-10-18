@@ -45,32 +45,27 @@ COPY . .
 # ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
-# ------------------------------------------------------------
-# Production runtime image
-# ------------------------------------------------------------
+
+# --- runtime stage ---
 FROM node:20-alpine AS prod
-# If you switched to slim above, switch here too:
-# FROM node:20-slim AS prod
+WORKDIR /app
+
+ENV NODE_ENV=production
+# system deps your app needs (you already add gcompat)
 RUN apk add --no-cache libc6-compat
 
-WORKDIR /app
-ENV NODE_ENV=production
-ENV HOSTNAME=0.0.0.0
-# Only production deps
+# install only prod deps
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Bring in the compiled app from the build stage
+# copy the compiled app from build stage
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
-COPY --from=build /app/next.config.js ./next.config.js
-# If you have a postcss/tailwind config that runtime needs, copy those too (usually not required):
-# COPY --from=build /app/tailwind.config.js ./tailwind.config.js
-# COPY --from=build /app/postcss.config.js ./postcss.config.js
+COPY --from=build /app/next.config.* ./   # if needed at runtime
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package*.json ./
 
-# Next.js default port
 EXPOSE 3000
+CMD ["npm","run","start"]
 
-# Start the production server
-CMD ["npm", "run", "start"]
 
