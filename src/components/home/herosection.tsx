@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Github, LogIn } from "lucide-react";
+import { ArrowRight, Check, Github } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,4 +122,3 @@ export default function HomePage() {
     </main>
   );
 }
-

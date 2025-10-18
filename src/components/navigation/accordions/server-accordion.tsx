@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteServers } from "@/hooks/servers/useInfiniteServers";
-import { useServer } from "@/hooks/servers/useServer";
 import type { components } from "@/types/openapi";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,14 +56,6 @@ export function ServerAccordion({
     return data.pages.flatMap((page) => page.items);
   }, [data]);
 
-  const {
-    data: activeServer,
-    isLoading: isActiveLoading,
-    isError: isActiveError,
-    error: activeError,
-  } = useServer(activeServerId ?? undefined, {
-    enabled: Boolean(activeServerId),
-  });
 
   useEffect(() => {
     const el = listRef.current;
@@ -126,14 +117,6 @@ export function ServerAccordion({
   const renderDescription = (server: ServerView) =>
     server.slug.replace(/-/g, " ");
 
-  const renderActiveDescription = () => {
-    if (isActiveLoading) return "Loading server details...";
-    if (isActiveError) return activeError?.message ?? "Failed to load server";
-    if (!activeServer) return "Select a server to view details.";
-
-    return `${activeServer.name} • ${activeServer.slug} • ${activeServer.type}`;
-  };
-
   return (
     <div
       className={cn(
@@ -180,8 +163,11 @@ export function ServerAccordion({
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="right" className="max-w-xs text-sm">
-                    <p className="font-semibold text-[#E0E0E0]  dark:text-black">
+                    <p className="font-semibold text-[#E0E0E0] dark:text-black">
                       {server.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground/80">
+                      {description}
                     </p>
                   </TooltipContent>
                 </Tooltip>

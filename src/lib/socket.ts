@@ -1,5 +1,5 @@
 import { Namespaces, SocketMap } from "@/types/constants";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 
 // Prevent multiple sockets during Next.js HMR/dev:
 const g = globalThis as unknown as { __SOCKETS__?: SocketMap };

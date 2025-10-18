@@ -37,11 +37,14 @@ export function AppSidebar() {
   const router = useRouter();
   const [isChannelPanelOpen, setIsChannelPanelOpen] = useState(false);
 
-  const handleServerSelect = useCallback((server: ServerView) => {
-    setSelectedServer({ id: server.id, name: server.name });
-    setIsChannelPanelOpen(true);
-    router.push(`/dashboard/server/${server.id}`);
-  }, []);
+  const handleServerSelect = useCallback(
+    (server: ServerView) => {
+      setSelectedServer({ id: server.id, name: server.name });
+      setIsChannelPanelOpen(true);
+      router.push(`/dashboard/server/${server.id}`);
+    },
+    [router],
+  );
 
   const handlePanelClose = useCallback(() => {
     setIsChannelPanelOpen(false);

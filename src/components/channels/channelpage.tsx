@@ -29,7 +29,7 @@ export default function ChannelPage() {
 
   const { data: session } = authClient.useSession();
 
-  const { socket, isConnected, sendMessage } = useMessagesSocket({
+  const { sendMessage } = useMessagesSocket({
     serverId,
     channelId,
     onConnected: (id) => console.log("connected:", id),
@@ -90,7 +90,7 @@ export default function ChannelPage() {
       emptyStateHint={`No messages yet in #${channelQuery.data.name}. Start the conversation!`}
       onRetry={() => void messagesQuery.refetch()}
       onSend={({ content, authorName }) =>
-        sendMessage({ content, authorName: authorName || session?.user?.name ?? "Unknown user" })
+        sendMessage({ content, authorName: authorName || (session?.user?.name ?? "Unknown user") })
       }
     />
   );

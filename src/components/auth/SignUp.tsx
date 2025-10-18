@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useSonner } from "sonner";
 import {
   Form,
   FormControl,
@@ -105,20 +104,21 @@ export default function SignupPage() {
     if (submitting) return; // guard double-click
     setSubmitting(true);
     try {
-      const { data, error } = await authClient.signUp.email({
+      const result = await authClient.signUp.email({
         name: values.name,
         email: values.email,
         password: values.password,
         // callbackURL: window.location.origin, // optional
       });
 
-      if (error) throw new Error(error.message);
+      if (result.error) throw new Error(result.error.message);
 
       toast.success("Successfully signed up!");
       router.push("/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Signup error:", err);
-      toast.error(err?.message ?? "Something went wrong during signup.");
+      const message = err instanceof Error ? err.message : "Something went wrong during signup.";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -357,11 +357,20 @@ export default function SignupPage() {
 }
 
 function PasswordMeter({ score, label }: { score: number; label: string }) {
-  const steps = 5; // 0..5
+  const normalized = Math.max(0, Math.min(score, 5));
   return (
-    <div className="mt-2">
-      <div className="flex gap-1"></div>
-      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+    <div className="mt-2 space-y-1">
+      <div className="flex gap-1">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <span
+            key={`strength-${index}`}
+            className={`h-1 flex-1 rounded-full ${
+              index < normalized ? "bg-primary" : "bg-muted-foreground/30"
+            }`}
+          />
+        ))}
+      </div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }

@@ -15,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 
 export function DashboardWelcome() {
   return (
@@ -133,4 +132,3 @@ function TipItem({ title, body }: TipItemProps) {
     </div>
   );
 }
-
