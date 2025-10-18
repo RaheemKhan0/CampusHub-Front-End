@@ -90,7 +90,7 @@ export default function ChannelPage() {
       emptyStateHint={`No messages yet in #${channelQuery.data.name}. Start the conversation!`}
       onRetry={() => void messagesQuery.refetch()}
       onSend={({ content, authorName }) =>
-        sendMessage({ content, authorName: authorName || session?.user?.name ?? "Unknown user" })
+        sendMessage({ content, authorName: authorName || (session?.user?.name ?? "Unknown user") })
       }
     />
   );

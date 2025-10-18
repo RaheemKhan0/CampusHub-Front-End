@@ -46,7 +46,7 @@ import { toast } from "sonner";
 const LoginSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
-  remember: z.boolean().optional().default(false),
+  remember: z.boolean().default(false),
 });
 
 export default function LoginPage() {
@@ -61,7 +61,7 @@ export default function LoginPage() {
     mode: "onChange",
   });
 
-  async function onSubmit(values: z.infer<typeof LoginSchema>) {
+  async function onSubmit(values: z.input<typeof LoginSchema>) {
     if (submitting) return;
     setSubmitting(true);
     try {
