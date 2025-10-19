@@ -311,10 +311,10 @@ export interface components {
              */
             content: string;
             /**
-             * @description Name of the author
-             * @example Khan
+             * @description Name of the author (defaults to session user name)
+             * @example Aaliyah Khan
              */
-            authorName: string;
+            authorName?: string;
             /** @description List of attachments associated with this message */
             attachments?: components["schemas"]["CreateAttachmentDto"][];
             /** @description Users mentioned in the message content */
@@ -336,6 +336,11 @@ export interface components {
              * @example usr_01hxt8zshm8yc6a5n8s6k1qj3r
              */
             authorId: string;
+            /**
+             * @description Name of the Author
+             * @example Khan
+             */
+            authorName: string;
             /** @description Message Markdown/text content */
             content: string;
             /** @description Attachments included with the message */
