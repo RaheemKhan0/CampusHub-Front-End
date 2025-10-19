@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "api:pull": "curl http://campus-api:4000/api-json -o src/api/openapi.d.ts",
+    "api:pull": "curl http://campus-api:4000/api-json -o src/types/openapi.d.ts",
     "api:gen": "openapi-typescript src/api/openapi.json -o src/types/openapi.d.ts",
     "api:sync": "npm api:pull && npm api:gen"
   },
