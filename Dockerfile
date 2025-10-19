@@ -19,7 +19,7 @@ CMD ["npm","run","dev"]
 
 # ---------------- build ---------------
 FROM base AS build
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --include=dev
 COPY . .
