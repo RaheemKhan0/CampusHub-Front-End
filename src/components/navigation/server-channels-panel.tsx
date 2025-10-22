@@ -45,14 +45,14 @@ export function ServerChannelsPanel({
   return (
     <div
       className={cn(
-        "flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out sticky left-0 align-middle",
+        "sticky top-0 flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out",
         open ? "w-[300px] max-w-[300px]" : "w-0",
       )}
     >
       <div
         className={cn(
-          "flex h-full min-h-screen flex-col border-l border-border/40 bg-sidebar text-sidebar-foreground shadow-lg",
-          "transition-[transform,opacity] duration-300 ease-out",
+          "flex h-screen flex-col border-l border-border/40 bg-sidebar text-sidebar-foreground shadow-lg",
+          "overflow-y-auto transition-[transform,opacity] duration-300 ease-out",
           "w-[--panel-width] min-w-[--panel-width] max-w-[--panel-width]",
           open
             ? "translate-x-0 opacity-100"

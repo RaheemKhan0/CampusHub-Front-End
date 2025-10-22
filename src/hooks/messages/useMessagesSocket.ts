@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo } from "react";
 
 import { useSocket } from "@/hooks/useSocket";
 import { SOCKET_EVENTS } from "@/types/constants";
+import { MessageAck } from "@/types/socket";
 
 import type { components } from "@/types/openapi";
 
@@ -13,7 +14,9 @@ type CreateMessageDto = components["schemas"]["CreateMessageDto"];
 type UseMessagesSocketOptions = {
   serverId?: string;
   channelId?: string;
-  onMessage?: (message: MessageViewDto) => void;
+  onMessage?: (
+    message: MessageViewDto,
+  ) => void;
   onConnected?: (socketId: string | undefined) => void;
   onDisconnected?: (reason: string) => void;
 };
@@ -23,8 +26,9 @@ type SendMessageInput = Omit<CreateMessageDto, "channelId">;
 type UseMessagesSocketReturn = {
   socket: ReturnType<typeof useSocket>;
   isConnected: boolean;
-  sendMessage: (input: SendMessageInput) => void;
+  sendMessage: (input: SendMessageInput , ack ?: (resp : MessageAck) => void) => void;
 };
+type SendMessageAckHandler = (ack: MessageAck) => void;
 
 export const useMessagesSocket = ({
   serverId,
@@ -39,9 +43,7 @@ export const useMessagesSocket = ({
     if (!socket) return;
 
     const handleConnect = () => onConnected?.(socket.id);
-    const handleDisconnect = (
-      reason: string,
-    ) => onDisconnected?.(reason);
+    const handleDisconnect = (reason: string) => onDisconnected?.(reason);
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
@@ -58,7 +60,9 @@ export const useMessagesSocket = ({
     const payload = { serverId, channelId };
     socket.emit(SOCKET_EVENTS.CHANNEL_JOIN, payload);
 
-    const handleMessage = (message: MessageViewDto) => {
+    const handleMessage = (
+      message: MessageViewDto,
+    ) => {
       onMessage?.(message);
     };
 
@@ -71,14 +75,18 @@ export const useMessagesSocket = ({
   }, [socket, serverId, channelId, onMessage]);
 
   const sendMessage = useCallback(
-    (input: SendMessageInput) => {
+    (input: SendMessageInput, ack?: SendMessageAckHandler) => {
       if (!socket || !serverId || !channelId) return;
 
-      socket.emit(SOCKET_EVENTS.MESSAGE_CREATE, {
-        ...input,
-        serverId,
-        channelId,
-      });
+      socket.emit(
+        SOCKET_EVENTS.MESSAGE_CREATE,
+        {
+          ...input,
+          serverId,
+          channelId,
+        },
+        (response : MessageAck) => ack?.(response),
+      );
     },
     [socket, serverId, channelId],
   );
