@@ -17,7 +17,7 @@
   type MessageListResponse = Omit<MessageListResponseRaw, "items"> & {
     items: MessageView[];
   };
-  type MessagesInfiniteData = InfiniteData<MessageListResponse, number>;
+export type MessagesInfiniteData = InfiniteData<MessageListResponse, number>;
 
   type UseMessagesOptions = Omit<
     UseInfiniteQueryOptions<

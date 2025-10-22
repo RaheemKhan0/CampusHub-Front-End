@@ -17,7 +17,7 @@ import { authClient } from "@/lib/auth-client";
 import { MessageAck } from "@/types/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/tanstack/queryKeys";
-import { MessagesInfiniteData } from "@/types/messages";
+import { MessagesInfiniteData } from "@/hooks/messages/useMessages";
 
 type Attachment = NonNullable<ChannelMessage["attachments"]>[number];
 type PendingMessage = ChannelMessage & {};
