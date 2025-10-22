@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageSquarePlus, Paperclip, SendHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -9,22 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
-
-export type ChannelMessage = {
-  id: string;
-  authorId: string;
-  authorName: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  editedAt?: string;
-  attachments?: Array<{
-    url: string;
-    name?: string;
-    mime?: string;
-    size?: number;
-  }>;
-};
+import { ChannelMessage } from "@/types/messages";
 
 type MessagePanelProps = {
   channelName: string;
@@ -49,6 +34,8 @@ export function MessagePanel({
 }: MessagePanelProps) {
   const [draft, setDraft] = useState("");
   const { data: session, isPending } = authClient.useSession();
+  const listRef = useRef<HTMLDivElement | null>(null);
+
   const sortedMessages = useMemo(
     () =>
       [...messages].sort(
@@ -57,6 +44,11 @@ export function MessagePanel({
       ),
     [messages],
   );
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+    container.scrollTop = container.scrollHeight;
+  }, [sortedMessages.length]);
 
   const handleSubmit = () => {
     if (!draft.trim()) return;
@@ -68,13 +60,15 @@ export function MessagePanel({
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-xl border border-border/50 bg-background/95 shadow-md",
+        "flex h-screen flex-col rounded-xl border border-border/50 bg-background/95 shadow-md",
         className,
       )}
     >
-      <Header channelName={channelName} channelTopic={channelTopic} />
-      <Separator />
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="sticky top-0 z-10 bg-background/95">
+        <Header channelName={channelName} channelTopic={channelTopic} />
+        <Separator />
+      </div>
+      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-6">
         {isLoading || isPending ? (
           <LoadingState />
         ) : sortedMessages.length === 0 ? (
@@ -95,13 +89,15 @@ export function MessagePanel({
           </ul>
         )}
       </div>
-      <Separator />
-      <Composer
-        value={draft}
-        onChange={setDraft}
-        onSubmit={handleSubmit}
-        isDisabled={isLoading}
-      />
+      <div className="sticky bottom-0 z-10 bg-background/95">
+        <Separator />
+        <Composer
+          value={draft}
+          onChange={setDraft}
+          onSubmit={handleSubmit}
+          isDisabled={isLoading}
+        />
+      </div>
     </div>
   );
 }
@@ -156,12 +152,7 @@ function MessageRow({ message, isOwn }: MessageRowProps) {
   }, [message.authorId, message.authorName]);
 
   return (
-    <li
-      className={cn(
-        "flex items-start gap-3",
-        isOwn && "justify-end",
-      )}
-    >
+    <li className={cn("flex items-start gap-3", isOwn && "justify-end")}>
       {!isOwn && (
         <Avatar className="h-8 w-8">
           <AvatarFallback className="text-[0.65rem] font-semibold uppercase">
@@ -176,32 +167,35 @@ function MessageRow({ message, isOwn }: MessageRowProps) {
         )}
       >
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">
-            {message.authorName || formatAuthor(message.authorId)}
-          </span>
-          <span>{timestamp}</span>
-          {message.editedAt && (
-            <span className="text-[0.65rem] text-muted-foreground/80">
-              (edited)
+          {!isOwn && (
+            <span className="font-semibold text-foreground">
+              {message.authorName || formatAuthor(message.authorId)}
             </span>
           )}
         </div>
         <div
           className={cn(
-            "whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed",
+            "relative whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed pr-20",
             isOwn
               ? "bg-primary text-primary-foreground"
               : "bg-muted/70 text-foreground",
           )}
         >
-          {message.content}
+          <span className="block mr-5" style={{ wordBreak: "break-word" }}>
+            {message.content}
+          </span>
+          {message.editedAt && (
+            <span className="absolute top-1 right-3 text-[0.65rem] text-muted-foreground/80">
+              Edited
+            </span>
+          )}
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[0.75rem] text-muted-foreground/80">
+            {timestamp}
+          </span>
         </div>
         {message.attachments && message.attachments.length > 0 && (
           <div
-            className={cn(
-              "mt-1 flex flex-wrap gap-2",
-              isOwn && "justify-end",
-            )}
+            className={cn("mt-1 flex flex-wrap gap-2", isOwn && "justify-end")}
           >
             {message.attachments.map((attachment) => (
               <a
@@ -224,6 +218,15 @@ function MessageRow({ message, isOwn }: MessageRowProps) {
                 </span>
               </a>
             ))}
+
+            {message.status === "pending" && (
+              <span className="text-xs text-muted-foreground">Sending…</span>
+            )}
+            {message.status === "failed" && (
+              <span className="text-xs text-destructive">
+                {message.error ?? "Failed to send. Click to retry."}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -334,8 +337,8 @@ function initialsFromName(name?: string | null): string | null {
   if (parts.length === 0) return null;
   const initials = parts
     .map((part) => part[0])
-    .join('')
-    .replace(/[^a-zA-Z]/g, '')
+    .join("")
+    .replace(/[^a-zA-Z]/g, "")
     .toUpperCase();
   return initials || null;
 }
