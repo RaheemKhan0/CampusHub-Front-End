@@ -44,6 +44,21 @@ export function MessagePanel({
       ),
     [messages],
   );
+
+  const groupedMessages = useMemo(() => {
+    return sortedMessages.map((message, index, array) => {
+      const previous = array[index - 1];
+      const next = array[index + 1];
+      const isFirstFromSender = previous?.authorId !== message.authorId;
+      const isLastFromSender = next?.authorId !== message.authorId;
+
+      return {
+        entry: message,
+        isFirstFromSender,
+        isLastFromSender,
+      };
+    });
+  }, [sortedMessages]);
   useEffect(() => {
     const container = listRef.current;
     if (!container) return;
@@ -78,14 +93,18 @@ export function MessagePanel({
             onRetry={onRetry}
           />
         ) : (
-          <ul className="space-y-6">
-            {sortedMessages.map((message) => (
-              <MessageRow
-                key={message.id}
-                message={message}
-                isOwn={session?.user?.id === message.authorId}
-              />
-            ))}
+          <ul className="space-y-1">
+            {groupedMessages.map(
+              ({ entry, isFirstFromSender, isLastFromSender }) => (
+                <MessageRow
+                  key={entry.id}
+                  message={entry}
+                  isOwn={session?.user?.id === entry.authorId}
+                  isFirstFromSender={isFirstFromSender}
+                  isLastFromSender={isLastFromSender}
+                />
+              ),
+            )}
           </ul>
         )}
       </div>
@@ -134,9 +153,16 @@ function Header({ channelName, channelTopic }: HeaderProps) {
 type MessageRowProps = {
   message: ChannelMessage;
   isOwn: boolean;
+  isFirstFromSender: boolean;
+  isLastFromSender: boolean;
 };
 
-function MessageRow({ message, isOwn }: MessageRowProps) {
+function MessageRow({
+  message,
+  isOwn,
+  isFirstFromSender,
+  isLastFromSender,
+}: MessageRowProps) {
   const timestamp = useMemo(
     () =>
       new Date(message.createdAt).toLocaleTimeString([], {
@@ -152,22 +178,26 @@ function MessageRow({ message, isOwn }: MessageRowProps) {
   }, [message.authorId, message.authorName]);
 
   return (
-    <li className={cn("flex items-start gap-3", isOwn && "justify-end")}>
+    <li className={cn("flex items-start gap-2", isOwn && "justify-end")}>
       {!isOwn && (
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="text-[0.65rem] font-semibold uppercase">
-            {fallback}
-          </AvatarFallback>
-        </Avatar>
+        <div className={cn("mt-1 w-8")}>
+          {isLastFromSender ? (
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="text-[0.65rem] font-semibold uppercase">
+                {fallback}
+              </AvatarFallback>
+            </Avatar>
+          ) : null}
+        </div>
       )}
       <div
         className={cn(
-          "flex max-w-[80%] flex-col space-y-1",
-          isOwn && "items-end text-right",
+          "flex max-w-[80%] flex-col ",
+          isOwn ? "items-end text-right" : "items-start text-left",
         )}
       >
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {!isOwn && (
+          {!isOwn && isFirstFromSender && (
             <span className="font-semibold text-foreground">
               {message.authorName || formatAuthor(message.authorId)}
             </span>
@@ -175,23 +205,26 @@ function MessageRow({ message, isOwn }: MessageRowProps) {
         </div>
         <div
           className={cn(
-            "relative whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed pr-20",
+            "relative whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed pr-14",
             isOwn
               ? "bg-primary text-primary-foreground"
               : "bg-muted/70 text-foreground",
           )}
         >
-          <span className="block mr-5" style={{ wordBreak: "break-word" }}>
-            {message.content}
-          </span>
+          <div className="flex items-end gap-2">
+            <span className="mr-5" style={{ wordBreak: "break-word" }}>
+              {message.content}
+            </span>
+            <span className="text-[0.75rem] text-muted-foreground/80 absolute right-3 bottom-2">
+              {timestamp}
+            </span>
+          </div>
           {message.editedAt && (
             <span className="absolute top-1 right-3 text-[0.65rem] text-muted-foreground/80">
               Edited
             </span>
           )}
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[0.75rem] text-muted-foreground/80">
-            {timestamp}
-          </span>
+         
         </div>
         {message.attachments && message.attachments.length > 0 && (
           <div
