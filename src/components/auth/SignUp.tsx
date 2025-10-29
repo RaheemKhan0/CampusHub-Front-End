@@ -17,6 +17,8 @@ import {
   Github,
   Chrome,
   ShieldCheck,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,17 @@ import {
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Checkbox } from "@radix-ui/react-checkbox";
+import { useDegrees } from "@/hooks/degrees/useDegrees";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 // --- Validation schema
 const passwordSchema = z
@@ -58,6 +71,7 @@ const SignupSchema = z
     email: z.string().email("Enter a valid email"),
     password: passwordSchema,
     confirmPassword: z.string(),
+    degreeSlug: z.string().min(1, "Select your degree"),
     agree: z
       .boolean()
       .refine((v) => v, { message: "You must accept the Terms." }),
@@ -84,6 +98,9 @@ export default function SignupPage() {
   const [showPw, setShowPw] = React.useState(false);
   const [showPw2, setShowPw2] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
+  const [degreeOpen, setDegreeOpen] = React.useState(false);
+
+  const { data: degrees = [], isLoading: degreesLoading } = useDegrees();
 
   const form = useForm<z.infer<typeof SignupSchema>>({
     resolver: zodResolver(SignupSchema),
@@ -92,6 +109,7 @@ export default function SignupPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      degreeSlug: "",
       agree: false,
     },
     mode: "onSubmit",
@@ -108,6 +126,7 @@ export default function SignupPage() {
         name: values.name,
         email: values.email,
         password: values.password,
+        degreeSlug : values.degreeSlug,
         // callbackURL: window.location.origin, // optional
       });
 
@@ -211,6 +230,84 @@ export default function SignupPage() {
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              <FormField
+                control={form.control}
+                name="degreeSlug"
+                render={({ field }) => {
+                  const selectedDegree = degrees.find(
+                    (degree) => degree.slug === field.value,
+                  );
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Degree</FormLabel>
+                      <Popover open={degreeOpen} onOpenChange={setDegreeOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={degreeOpen}
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground",
+                            )}
+                          >
+                            {selectedDegree
+                              ? selectedDegree.name
+                              : degreesLoading
+                                ? "Loading degrees..."
+                                : "Select a degree"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[320px] p-0" align="start">
+                          {degreesLoading ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              Loading degrees...
+                            </div>
+                          ) : (
+                            <Command>
+                              <CommandInput placeholder="Search degrees..." />
+                              <CommandEmpty>No degrees found.</CommandEmpty>
+                              <CommandList>
+                                <CommandGroup>
+                                  {degrees.map((degree) => (
+                                    <CommandItem
+                                      key={degree.slug}
+                                      value={degree.slug}
+                                      onSelect={(value) => {
+                                        field.onChange(value);
+                                        setDegreeOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === degree.slug
+                                            ? "opacity-100"
+                                            : "opacity-0",
+                                        )}
+                                      />
+                                      <span>{degree.name}</span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        Choose your degree so we can tailor your Campus Hub
+                        experience.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField

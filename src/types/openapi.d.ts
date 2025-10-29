@@ -144,6 +144,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/degrees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all degrees */
+        get: operations["DegreeController_listDegrees"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/degrees/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve degree details by slug */
+        get: operations["DegreeController_getDegree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/degrees/{slug}/modules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List modules for a degree */
+        get: operations["DegreeController_listModules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -164,12 +215,18 @@ export interface components {
              * @example https://cdn.example.com/icons/cs.png
              */
             icon?: string;
+            /** @description Associated degree identifier */
+            degreeId: string;
+            /** @description Associated degree-module identifier */
+            degreeModuleId: string;
         };
         ServerViewDto: {
             id: string;
             name: string;
             type: components["schemas"]["ServerType"];
             slug: string;
+            degreeId: string;
+            degreeModuleId: string;
             /** @description BetterAuth user id when the server has an owner */
             ownerId?: string;
             icon?: string;
@@ -200,6 +257,10 @@ export interface components {
              * @example https://cdn.example.com/icons/cs.png
              */
             icon?: string;
+            /** @description Associated degree identifier */
+            degreeId?: string;
+            /** @description Associated degree-module identifier */
+            degreeModuleId?: string;
         };
         CreateChannelDto: {
             name: string;
@@ -389,6 +450,49 @@ export interface components {
              * @example false
              */
             hasMore: boolean;
+        };
+        DegreeViewDto: {
+            /** @description Degree identifier */
+            id: string;
+            /** @description URL-friendly identifier */
+            slug: string;
+            /** @description Degree name */
+            name: string;
+            /** @description duration of the years */
+            durationYears: number;
+            /**
+             * @description type of degree
+             * @enum {string}
+             */
+            type: "undergraduate";
+        };
+        DegreeModuleViewDto: {
+            id: string;
+            moduleId: string;
+            title: string;
+            /** @enum {string} */
+            kind: "core" | "elective";
+            /** @enum {string} */
+            term?: "firstterm" | "secondterm" | "full-year";
+            year: number;
+            description?: string;
+            credits?: number;
+        };
+        DegreeDetailDto: {
+            /** @description Degree identifier */
+            id: string;
+            /** @description URL-friendly identifier */
+            slug: string;
+            /** @description Degree name */
+            name: string;
+            /** @description duration of the years */
+            durationYears: number;
+            /**
+             * @description type of degree
+             * @enum {string}
+             */
+            type: "undergraduate";
+            modules: components["schemas"]["DegreeModuleViewDto"][];
         };
     };
     responses: never;
@@ -674,6 +778,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MessageViewDto"];
+                };
+            };
+        };
+    };
+    DegreeController_listDegrees: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DegreeViewDto"][];
+                };
+            };
+        };
+    };
+    DegreeController_getDegree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DegreeDetailDto"];
+                };
+            };
+        };
+    };
+    DegreeController_listModules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DegreeModuleViewDto"][];
                 };
             };
         };

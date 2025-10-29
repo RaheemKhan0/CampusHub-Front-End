@@ -54,4 +54,7 @@ export const qk = {
   // Single message (for optimistic create/update/delete)
   message: (serverId: string, channelId: string, messageId: string) =>
     ["server", serverId, "channel", channelId, "message", messageId] as const,
+
+  // ---------- Degrees ----------
+  degrees: () => ["degrees"] as const,
 } as const;
