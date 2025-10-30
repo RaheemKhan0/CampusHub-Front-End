@@ -1,0 +1,11 @@
+{
+  "inputs": [
+    {
+      "inputFile": "./src/types/schemas/app-openapi.json"
+    },
+    {
+      "inputFile": "./src/types/schemas/betterauth-openapi.json"
+    }
+  ],
+  "output": "./src/types/schemas/combined-openapi.json"
+}
