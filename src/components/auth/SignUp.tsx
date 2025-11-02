@@ -72,6 +72,7 @@ const SignupSchema = z
     password: passwordSchema,
     confirmPassword: z.string(),
     degreeSlug: z.string().min(1, "Select your degree"),
+    startYear: z.string().min(1, "Select your start year"),
     agree: z
       .boolean()
       .refine((v) => v, { message: "You must accept the Terms." }),
@@ -99,9 +100,9 @@ export default function SignupPage() {
   const [showPw2, setShowPw2] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [degreeOpen, setDegreeOpen] = React.useState(false);
+  const [startYearOpen, setStartYearOpen] = React.useState(false);
 
   const { data: degrees = [], isLoading: degreesLoading } = useDegrees();
-
   const form = useForm<z.infer<typeof SignupSchema>>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
@@ -110,15 +111,40 @@ export default function SignupPage() {
       password: "",
       confirmPassword: "",
       degreeSlug: "",
+      startYear: "",
       agree: false,
     },
     mode: "onSubmit",
   });
 
+  const degreeSlugValue = form.watch("degreeSlug");
+  const selectedDegree = React.useMemo(
+    () => degrees.find((degree) => degree.slug === degreeSlugValue),
+    [degrees, degreeSlugValue],
+  );
+  const startYearOptions = React.useMemo(() => {
+    if (!selectedDegree || !selectedDegree.durationYears) return [];
+    const duration = Math.max(0, selectedDegree.durationYears);
+    if (duration <= 0) return [];
+    const currentYear = new Date().getFullYear();
+    const earliest = Math.max(1900, currentYear - duration + 1);
+    const years: string[] = [];
+    for (let year = currentYear; year >= earliest; year -= 1) {
+      years.push(year.toString());
+    }
+    return years;
+  }, [selectedDegree]);
+
+  React.useEffect(() => {
+    form.setValue("startYear", "");
+    setStartYearOpen(false);
+  }, [selectedDegree?.slug, form]);
+
   const pwValue = form.watch("password");
   const { score, label } = getStrength(pwValue ?? "");
 
   async function onSubmit(values: z.infer<typeof SignupSchema>) {
+    console.log('values : ' , values);
     if (submitting) return; // guard double-click
     setSubmitting(true);
     try {
@@ -127,6 +153,7 @@ export default function SignupPage() {
         email: values.email,
         password: values.password,
         degreeSlug : values.degreeSlug,
+        startYear : Number(values.startYear),
         // callbackURL: window.location.origin, // optional
       });
 
@@ -236,7 +263,7 @@ export default function SignupPage() {
                 control={form.control}
                 name="degreeSlug"
                 render={({ field }) => {
-                  const selectedDegree = degrees.find(
+                  const activeDegree = degrees.find(
                     (degree) => degree.slug === field.value,
                   );
 
@@ -255,8 +282,8 @@ export default function SignupPage() {
                               !field.value && "text-muted-foreground",
                             )}
                           >
-                            {selectedDegree
-                              ? selectedDegree.name
+                            {activeDegree
+                              ? activeDegree.name
                               : degreesLoading
                                 ? "Loading degrees..."
                                 : "Select a degree"}
@@ -303,6 +330,85 @@ export default function SignupPage() {
                       <FormDescription>
                         Choose your degree so we can tailor your Campus Hub
                         experience.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name="startYear"
+                render={({ field }) => {
+                  const hasOptions = startYearOptions.length > 0;
+                  const buttonLabel = (() => {
+                    if (!selectedDegree) return "Select a degree first";
+                    if (!hasOptions) return "No valid start years";
+                    return field.value || "Select start year";
+                  })();
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Start Year</FormLabel>
+                      <Popover open={startYearOpen} onOpenChange={setStartYearOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={startYearOpen}
+                            disabled={!selectedDegree || !hasOptions}
+                            className={cn(
+                              "w-full justify-between",
+                              (!field.value || !selectedDegree) && "text-muted-foreground",
+                            )}
+                          >
+                            {buttonLabel}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[240px] p-0" align="start">
+                          {!selectedDegree ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              Select a degree first.
+                            </div>
+                          ) : !hasOptions ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              No start years available.
+                            </div>
+                          ) : (
+                            <Command>
+                              <CommandInput placeholder="Search year..." />
+                              <CommandEmpty>No year found.</CommandEmpty>
+                              <CommandList>
+                                <CommandGroup>
+                                  {startYearOptions.map((year) => (
+                                    <CommandItem
+                                      key={year}
+                                      value={year}
+                                      onSelect={(value) => {
+                                        field.onChange(value);
+                                        setStartYearOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === year ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
+                                      <span>{year}</span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        Pick the academic year you started your degree.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
