@@ -9,6 +9,9 @@ export const authClient = createAuthClient({
         degreeSlug: {
           type: "string",
         },
+        startYear : {
+          type : 'number',
+        },
       },
     }),
   ],

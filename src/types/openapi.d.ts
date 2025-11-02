@@ -3698,6 +3698,7 @@ export interface components {
             /** @default false */
             isSuper: boolean;
             degreeSlug: string;
+            startYear: number;
         };
         Session: {
             id?: string;

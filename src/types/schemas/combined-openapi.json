@@ -5806,6 +5806,9 @@
           },
           "degreeSlug": {
             "type": "string"
+          },
+          "startYear": {
+            "type": "number"
           }
         },
         "required": [
@@ -5814,7 +5817,8 @@
           "emailVerified",
           "createdAt",
           "updatedAt",
-          "degreeSlug"
+          "degreeSlug",
+          "startYear"
         ]
       },
       "Session": {
